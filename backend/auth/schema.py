@@ -1,6 +1,8 @@
 import email
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, field_validator
+from uuid import UUID
 
 
 class User(BaseModel):
@@ -12,15 +14,21 @@ class User(BaseModel):
 
     
 class DisplayAccount(BaseModel):
-    id: int
+    model_config = ConfigDict(from_attributes=True)
+    id: str
     username: str
     email: str
     firstName: Optional[str]
     lastName: Optional[str]
    
+    @field_validator('id', mode='before')
+    @classmethod
+    def transform_uuid_to_str(cls, v):
+        if isinstance(v, UUID):
+            return str(v)
+        return v
 
-    class Config:
-        orm_mode = True
+   
 
 
 class UserUpdate(BaseModel):
@@ -43,4 +51,4 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
-    id: Optional[int]
+    id: Optional[str] = None 

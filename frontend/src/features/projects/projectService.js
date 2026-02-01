@@ -75,13 +75,11 @@ const updateProject = async (data, token) => {
   const response = await axios.patch(API_URL + data.id, data, config)
 
   return response.data
- } catch (err) {
-  let errorMessage = 'Something went wrong'
-    if (err.response.status === 401) {
-      errorMessage = 'Unauthorized access, please login again.'
-    }
-    toast.error(errorMessage)
- }
+} catch (err) {
+    // ALWAYS check if err.response exists first!
+    const message = err.response?.data?.detail || err.message || "Something went wrong";
+    toast.error(message);
+}
 }
 
 // Delete single Project

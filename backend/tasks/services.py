@@ -48,7 +48,7 @@ async def update_task_by_id(request, task_id, current_user, database):
     task.dueDate = request.dueDate if request.dueDate else task.dueDate
 
     # create log
-    task_log = models.TaskLog(task_id=task_id)
+    task_log = models.TaskLog(task_id=task_id, createdDate=datetime.now())
     database.add(task_log)
     database.commit()
     database.refresh(task)

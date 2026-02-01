@@ -11,225 +11,180 @@ import {
   resetVariables,
 } from "../features/tasks/taskSlice";
 
-const AddTask = () => {
+const TaskDetail = () => {
   const dispatch = useDispatch();
   const params = useParams();
   const navigate = useNavigate();
   const statusChoices = ["To Do", "In Progress", "In Review", "Done"];
   const [toastMessage, setToastMessage] = useState("");
-  
-
-  useEffect(() => {
-    dispatch(getTask(params.taskId));
-  }, [dispatch, params.taskId]);
 
   const { task, isError, isSuccess, message } = useSelector(
     (state) => state.taskData
   );
-
-  useEffect(() => {
-    const toastOptions = {
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    };
-
-    if (isError) {
-      toast.error(message, toastOptions);
-    }
-
-    if (isSuccess && toastMessage) {
-      toast.success(toastMessage, toastOptions);
-      dispatch(resetVariables());
-      navigate("/kanban");
-    }
-  }, [
-    dispatch,
-    isError,
-    isSuccess,
-    navigate,
-    message,
-    toastMessage,
-  ]);
+  const { projects } = useSelector((state) => state.projectData);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      title: "",
-      description: "",
-    },
-  });
+  } = useForm();
 
-  const { projects } = useSelector((state) => state.projectData);
-
+  // 1. Fetch Task and Projects on load
   useEffect(() => {
+    dispatch(getTask(params.taskId));
     dispatch(getProjects());
-  }, [dispatch]);
+  }, [dispatch, params.taskId]);
 
+  // 2. Sync Form with Task Data (Only when task.id is loaded)
   useEffect(() => {
-    reset({
-      title: task.title,
-      description: task.description,
-      status: task.status,
-      dueDate: task.dueDate,
-      project_id: task.project_id,
-    });
+    if (task && task.id) {
+      reset({
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        dueDate: task.dueDate ? task.dueDate.split("T")[0] : "", // Formats for <input type="date">
+        project_id: task.project_id,
+      });
+    }
   }, [task, reset]);
+
+  // 3. Handle Success/Error Notifications
+  useEffect(() => {
+    if (isError) {
+      toast.error(message);
+      dispatch(resetVariables());
+    }
+
+    if (isSuccess && toastMessage) {
+      toast.success(toastMessage);
+      dispatch(resetVariables());
+      navigate("/kanban");
+    }
+  }, [dispatch, isError, isSuccess, message, navigate, toastMessage]);
+
+  const updateTaskUtil = (formData) => {
+  // Use params.taskId (from URL) instead of task.id
+  const taskId = params.taskId; 
+
+  if (!taskId || taskId === "undefined") {
+    return toast.error("Task ID is missing. Please refresh.");
+  }
+
+  const payload = {
+    ...formData,
+    id: parseInt(taskId, 10), // Convert to integer for backend
+    project_id: parseInt(formData.project_id, 10)
+  };
+  dispatch(updateTask(payload));
+};
 
   const deleteTaskUtil = (e) => {
     e.preventDefault();
-    setToastMessage("Task successfully deleted!");
-    dispatch(deleteTask(params.taskId));
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      setToastMessage("Task successfully deleted!");
+      dispatch(deleteTask(params.taskId));
+    }
   };
 
-  const updateTaskUtil = (data) => {
-    setToastMessage("Task successfully updated!");
-    data.id = task.id;
-    dispatch(updateTask(data));
-  };
+  // Loading State
+  if (!project?.id && !task?.id) {
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <p className="text-xl font-bold text-gray-400 animate-pulse">Syncing with database...</p>
+    </div>
+  );
+}
 
   return (
     <form
-      onSubmit={handleSubmit((data) => updateTaskUtil(data))}
-      className="md:w-1/2 sm:w-3/4 mx-auto my-3"
+      onSubmit={handleSubmit(updateTaskUtil)}
+      className="md:w-1/2 sm:w-3/4 mx-auto my-3 p-6 bg-white shadow-md rounded"
     >
-      <p className="text-center text-2xl my-3 text-red-700">TASK DETAIL</p>
+      <p className="text-center text-2xl mb-6 text-red-700 font-bold uppercase tracking-wide">
+        Task Detail
+      </p>
+
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="title"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
           Title
         </label>
         <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-blue-500"
           id="title"
           type="text"
-          placeholder="Task Title"
-          {...register("title", { required: true })}
+          {...register("title", { required: "Title is required" })}
         />
-        {errors.title && <p className="text-red-500">Title is required.</p>}
+        {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
       </div>
+
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="description"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
           Description
         </label>
         <textarea
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-blue-500"
           id="description"
-          type="text"
-          placeholder="Task Description"
-          rows="10"
-          {...register("description", { required: true })}
+          rows="5"
+          {...register("description", { required: "Description is required" })}
         ></textarea>
-        {errors.description && (
-          <p className="text-red-500">Description is required.</p>
-        )}
+        {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
       </div>
+
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="project_id"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="project_id">
           Project
         </label>
         <select
-          {...register("project_id", { required: false })}
-          className="form-select appearance-none
-                block
-                w-full
-                px-3
-                py-1.5
-                text-base
-                font-normal
-                text-gray-700
-                bg-white bg-clip-padding bg-no-repeat
-                border border-solid border-gray-300
-                rounded
-                transition
-                ease-in-out
-                m-0
-                focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-          aria-label="Default select example"
+          {...register("project_id", { required: "Project selection is required" })}
+          className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-blue-500"
         >
-          {projects.map((item, index) => (
-              <option key={index} value={item.id}>{item.title}</option>
-          ))}
-        </select>
-      </div>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="status"
-        >
-          Status
-        </label>
-        <select
-          {...register("status", { required: true })}
-          className="form-select appearance-none
-                block
-                w-full
-                px-3
-                py-1.5
-                text-base
-                font-normal
-                text-gray-700
-                bg-white bg-clip-padding bg-no-repeat
-                border border-solid border-gray-300
-                rounded
-                transition
-                ease-in-out
-                m-0
-                focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-          aria-label="Default select example"
-        >
-          {statusChoices.map((item, index) => (
-            <option key={index} value={item}>
-              {item}
+          {projects.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.title}
             </option>
           ))}
         </select>
-        {errors.status && <p className="text-red-500">Status is required.</p>}
       </div>
 
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="dueDate"
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="status">
+          Status
+        </label>
+        <select
+          {...register("status", { required: "Status is required" })}
+          className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-blue-500"
         >
+          {statusChoices.map((choice) => (
+            <option key={choice} value={choice}>
+              {choice}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="dueDate">
           Due Date
         </label>
         <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-blue-500"
           id="dueDate"
           type="date"
-          placeholder="Select Due Date"
-          {...register('dueDate', { required: true })}
+          {...register("dueDate", { required: "Due date is required" })}
         />
-        {errors.dueDate && <p className="text-red-500">Due Date is required.</p>}
       </div>
 
-      <div>
-        <input
-          className="shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-          type="submit"
-          value="Update Task"
-        />
+      <div className="flex items-center justify-between">
         <button
-          onClick={(e) => deleteTaskUtil(e)}
-          className="shadow mx-3 bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded transition duration-200"
+          type="submit"
+        >
+          Update Task
+        </button>
+        <button
+          onClick={deleteTaskUtil}
+          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded transition duration-200"
         >
           Delete Task
         </button>
@@ -238,4 +193,4 @@ const AddTask = () => {
   );
 };
 
-export default AddTask;
+export default TaskDetail;

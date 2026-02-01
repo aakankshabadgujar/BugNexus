@@ -1,6 +1,6 @@
 import axios from "axios";
 import { toast } from "react-toastify";
-const API_URL = "http://localhost:8000/auth/";
+const API_URL = "http://127.0.0.1:8000/auth/";
 
 // Register user
 const register = async (userData) => {
@@ -13,15 +13,22 @@ const register = async (userData) => {
     }
     return response.data;
   } catch (err) {
-    let errorMessage = "Something went wrong";
-    if (err.response.status === 401) {
-      errorMessage = "Unauthorized access, please login again.";
+    let errorMessage = "Server connection failed. Please try again later.";
+
+    // Secure check: only access .status if .response exists
+    if (err.response) {
+        if (err.response.status === 401) {
+            errorMessage = err.response.data.detail || "Unauthorized access.";
+        } else if (err.response.status === 400 || err.response.status === 404) {
+            errorMessage = err.response.data.detail;
+        }
+    } else if (err.message) {
+        errorMessage = err.message; // Captures "Network Error"
     }
-    if (err.response.status === 400) {
-      errorMessage = err.response.data.detail;
-    }
+
     toast.error(errorMessage);
-  }
+    throw err; // Ensure the caller (Redux) knows it failed
+}
 };
 
 // Login user
@@ -29,21 +36,30 @@ const login = async (userData) => {
   try {
     const response = await axios.post(API_URL + "login", userData);
 
-    if (response.data) {
+   if (response.data && response.data.access_token) {
+      // FIX: Store the whole object or just the token, 
+      // but ensure getUserProfile can find it.
       localStorage.setItem("user", JSON.stringify(response.data));
       toast.success("Logged in successfully");
     }
     return response.data;
   } catch (err) {
-    let errorMessage = "Something went wrong";
-    if (err.response.status === 400) {
-      errorMessage = err.response.data.detail;
+    let errorMessage = "Server connection failed. Please try again later.";
+
+    // Secure check: only access .status if .response exists
+    if (err.response) {
+        if (err.response.status === 401) {
+            errorMessage = err.response.data.detail || "Unauthorized access.";
+        } else if (err.response.status === 400 || err.response.status === 404) {
+            errorMessage = err.response.data.detail;
+        }
+    } else if (err.message) {
+        errorMessage = err.message; // Captures "Network Error"
     }
-    if (err.response.status === 404) {
-      errorMessage = err.response.data.detail;
-    }
+
     toast.error(errorMessage);
-  }
+    throw err; // Ensure the caller (Redux) knows it failed
+}
 };
 
 // Logout user
@@ -62,19 +78,23 @@ const getUserProfile = async (token) => {
 
     const response = await axios.get(API_URL + "profile", config);
     return response.data;
-  } catch (err) {
-    let errorMessage = "Something went wrong";
-    if (err.response.status === 401) {
-      errorMessage = err.response.data.detail;
-      localStorage.removeItem("user")
-      // redirect to login
-      window.location.href = "/login";
+} catch (err) {
+    let errorMessage = "Server connection failed. Please try again later.";
+
+    // Secure check: only access .status if .response exists
+    if (err.response) {
+        if (err.response.status === 401) {
+            errorMessage = err.response.data.detail || "Unauthorized access.";
+        } else if (err.response.status === 400 || err.response.status === 404) {
+            errorMessage = err.response.data.detail;
+        }
+    } else if (err.message) {
+        errorMessage = err.message; // Captures "Network Error"
     }
-    if (err.response.status === 404) {
-      errorMessage = err.response.data.detail;
-    }
+
     toast.error(errorMessage);
-  }
+    throw err; // Ensure the caller (Redux) knows it failed
+}
 };
 
 const authService = {

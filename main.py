@@ -12,7 +12,7 @@ from backend.tasks import router as task_router
 from backend.admin import router as admin_router
 from backend.project import router as project_router
 
-app = FastAPI(title="Fast API Blog",
+app = FastAPI(title="BugNexus",
     docs_url="/docs",
     version="0.0.1")
 

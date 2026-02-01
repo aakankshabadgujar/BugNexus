@@ -1,41 +1,38 @@
-from datetime import date
-from typing import Optional, List
-from pydantic import BaseModel, constr, EmailStr
-
+from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, field_validator
+from uuid import UUID
 
 class UserSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     username: str
-    email: EmailStr
-
-    class Config:
-        orm_mode = True
-
+    email: str
 
 class ProjectBase(BaseModel):
-    id: Optional[int]
+    model_config = ConfigDict(from_attributes=True)
     title: str
-    description: str
-    
-    class Config:
-        orm_mode = True
+    description: Optional[str] = None # Changed to Optional to prevent 422 errors
 
+class ProjectCreate(ProjectBase):
+    pass # This is what your POST request uses
 
 class ProjectUpdate(BaseModel):
-    title: Optional[str]
-    description: Optional[str]
-    status: Optional[str]
-
-    class Config:
-        orm_mode = True
-
+    model_config = ConfigDict(from_attributes=True)
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
 
 class ProjectList(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     title: str
-    description: str
-    owner_id: int
-    owner: UserSchema
-    createdDate: date
+    description: Optional[str] = None
+    owner_id: str  # This is where the error occurs
+    createdDate: datetime
 
-    class Config:
-        orm_mode = True
+    @field_validator('owner_id', mode='before')
+    @classmethod
+    def transform_uuid_to_str(cls, v):
+        if isinstance(v, UUID):
+            return str(v)
+        return v

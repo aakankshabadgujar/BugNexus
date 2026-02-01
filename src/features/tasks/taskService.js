@@ -14,12 +14,11 @@ const createTask = async (taskData, token) => {
   
     return response.data
   } catch (err) {
-    let errorMessage = 'Something went wrong'
-    if (err.response.status === 401) {
-      errorMessage = 'Unauthorized access, please login again.'
-    }
-    toast.error(errorMessage)
-  }
+  // Check if err.response exists before reading its status
+  const message = err.response?.data?.detail || err.message || "Something went wrong";
+  toast.error(message);
+  throw err; // Always re-throw for Redux Toolkit to catch the rejection
+}
 }
 
 // Get user tasks
@@ -32,13 +31,12 @@ const getTasks = async (token) => {
     }
     const response = await axios.get(API_URL, config)
     return response.data
-  } catch (err) {
-    let errorMessage = 'Something went wrong'
-    if (err.response.status === 401) {
-      errorMessage = 'Unauthorized access, please login again.'
-    }
-    toast.error(errorMessage)
-  }
+ } catch (err) {
+  // Check if err.response exists before reading its status
+  const message = err.response?.data?.detail || err.message || "Something went wrong";
+  toast.error(message);
+  throw err; // Always re-throw for Redux Toolkit to catch the rejection
+}
 }
 
 // Get single Task
@@ -53,13 +51,12 @@ const getTask = async (taskId, token) => {
     const response = await axios.get(API_URL + taskId, config)
   
     return response.data
-  } catch (err) {
-    let errorMessage = 'Something went wrong'
-    if (err.response.status === 401) {
-      errorMessage = 'Unauthorized access, please login again.'
-    }
-    toast.error(errorMessage)
-  }
+ } catch (err) {
+  // Check if err.response exists before reading its status
+  const message = err.response?.data?.detail || err.message || "Something went wrong";
+  toast.error(message);
+  throw err; // Always re-throw for Redux Toolkit to catch the rejection
+}
 }
 
 // Update Task
@@ -75,13 +72,12 @@ const updateTask = async (data, token) => {
   const response = await axios.patch(API_URL + data.id, data, config)
 
   return response.data
- } catch (err) {
-  let errorMessage = 'Something went wrong'
-    if (err.response.status === 401) {
-      errorMessage = 'Unauthorized access, please login again.'
-    }
-    toast.error(errorMessage)
- }
+} catch (err) {
+  // Check if err.response exists before reading its status
+  const message = err.response?.data?.detail || err.message || "Something went wrong";
+  toast.error(message);
+  throw err; // Always re-throw for Redux Toolkit to catch the rejection
+}
 }
 
 // Delete single Task
@@ -96,13 +92,12 @@ const deleteTask = async (taskId, token) => {
     const response = await axios.delete(API_URL + taskId, config)
   
     return response.data
-  } catch (err) {
-    let errorMessage = 'Something went wrong'
-    if (err.response.status === 401) {
-      errorMessage = 'Unauthorized access, please login again.'
-    }
-    toast.error(errorMessage)
-  }
+ } catch (err) {
+  // Check if err.response exists before reading its status
+  const message = err.response?.data?.detail || err.message || "Something went wrong";
+  toast.error(message);
+  throw err; // Always re-throw for Redux Toolkit to catch the rejection
+}
 }
 
 const taskService = {

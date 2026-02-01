@@ -43,9 +43,17 @@ const AddTask = () => {
   }, [dispatch, isError, isSuccess, message, navigate, toastMessage])
 
   const createTaskUtil = (data) => {
-    dispatch(createTask(data))
-    setToastMessage('Task created successfully!')
-  }
+  // Convert project_id to integer and ensure the ID is valid
+  const taskData = {
+    ...data,
+    project_id: parseInt(data.project_id, 10)
+  };
+
+  setToastMessage('Task created successfully!');
+  dispatch(createTask(taskData));
+};
+
+
 
   return (
     <form onSubmit={handleSubmit((data) => createTaskUtil(data))} className="md:w-1/2 sm:w-3/4 mx-auto my-3">

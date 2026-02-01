@@ -48,7 +48,7 @@ def login(request: schema.Login,
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Password")
 
     # Generate a JWT Token
-    access_token = create_access_token(data={"sub": user.email, "id": user.id})
+    access_token = create_access_token(data={"sub": user.email, "id": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
 

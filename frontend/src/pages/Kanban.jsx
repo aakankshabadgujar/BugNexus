@@ -35,14 +35,24 @@ const Kanban = () => {
   }, [tasks]);
 
   function handleOnDragEnd(result) {
-    if (result.destination.droppableId) {
+    const { destination, source, draggableId } = result;
 
-      let payload = {
-        id: parseInt(result.draggableId),
-        status: result.destination.droppableId,
-      };
-      dispatch(updateTask(payload));
+  if (!destination) return;
+  if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
+  // FIX: Force draggableId to be a Number so the .find() works correctly
+  const taskId = Number(draggableId); 
+  const taskToUpdate = tasks.find(t => t.id === taskId);
+
+  if (taskToUpdate) {
+    const payload = {
+      ...taskToUpdate,
+      status: destination.droppableId,
+    };
+    
+    // This will now send a real ID (e.g., /task/6) instead of /task/undefined
+    dispatch(updateTask(payload));
+  
       let newStateData = { ...stateData };
       let destinationArray = Array.from(
         stateData[result.destination.droppableId]

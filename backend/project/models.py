@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, String, ForeignKey, Text, DateTime, Integer
+from sqlalchemy import UUID, Column, String, ForeignKey, Text, DateTime, Integer
 
 
 from backend.db import Base
@@ -13,7 +13,7 @@ class Project(Base):
     createdDate = Column(DateTime, default=datetime.now)
     title = Column(String(50))
     description = Column(Text)
-    owner_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"))
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"))
 
     owner = relationship("User", back_populates="projects")
     tasks = relationship("Task", back_populates="project")

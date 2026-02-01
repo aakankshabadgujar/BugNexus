@@ -139,35 +139,40 @@ export const taskSlice = createSlice({
       .addCase(getTasks.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getTasks.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.tasks = action.payload;
-      })
+      
       .addCase(getTasks.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
       })
-      .addCase(getTask.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getTask.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.task = action.payload;
-      })
-      .addCase(getTask.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
-      })
+      .addCase(getTasks.fulfilled, (state, action) => {
+  state.isLoading = false;
+  // Only keep tasks that have a valid numeric ID
+  state.tasks = action.payload.filter(t => t && t.id); 
+})
+      
+     
+    
       .addCase(updateTask.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(updateTask.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isSuccess = true;
-        state.task = action.payload;
-      })
+     // Add a filter to the fulfilled cases to remove any 'null' or 'undefined' tasks
+
+      // REPLACE your updateTask.fulfilled block with this specific logic:
+    // REPLACE your current updateTask.fulfilled block with this:
+.addCase(updateTask.fulfilled, (state, action) => {
+  state.isLoading = false;
+  state.isSuccess = true;
+  // 1. Update the single 'task' for the detail page
+  state.task = action.payload; 
+  
+  // 2. Update ONLY the specific task in the list array 
+  // This prevents other tasks from becoming 'undefined' and stops the 'reading id' crash.
+  state.tasks = state.tasks.map((task) =>
+    task.id === action.payload.id ? action.payload : task
+  );
+})
+
       .addCase(updateTask.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
