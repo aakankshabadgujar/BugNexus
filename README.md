@@ -1,4 +1,4 @@
-# Scrum Master Kanban Board using React and FAST API
+# BugNexus Kanban Board using React and FAST API
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
@@ -18,15 +18,6 @@ It has supoort for multi-user authentication.
 
 It now supports project CRUD operations. A task can be a part of a project. A slide-show component using the library react-awesome-slider was also added recently.
 
-## Updates
-
-27/12/22 : Added Admin panel with support of being able to add users and tasks, modify any user or task for admin role user type.
-
-1/5/23 : Scheduler was added which shows a custom calendar and all the tasks you have for a given date. Custom calendar is made using dayjs library in Javascript.
-
-28/8/23 : Project module added with CRUD operations, a task might be associated with a given project. Error handling has been improved.
-
-21/11/25 : Major UI upgrade
 
 ## Screenshots
 
@@ -50,11 +41,5 @@ Calendar scheduler to get all the tasks
 
 
 
-A working demo of the application in form of video can be found here https://www.youtube.com/watch?v=oJZs_70UR2E
+A working demo of the application in form of video can be found here https://screenrec.com/share/cN3jiHIYSq
 
-## Deployment using Docker containers
-
-```sh
-$ docker-compose up -d --build
-$ docker-compose exec web alembic upgrade head
-```
